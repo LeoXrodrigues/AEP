@@ -1,0 +1,23 @@
+MANUTENÇÃO EVOLUTIVA DO SISTEMA CLIMA+
+
+O sistema Clima+ foi concebido como uma aplicação web voltada para promover o bem-estar urbano e práticas sustentáveis, 
+alinhado à ODS 11 – Cidades e Comunidades Sustentáveis.Com o objetivo de recomendar locais apropriados para atividades físicas ao ar livre com base nas
+condições climáticas em tempo real, o sistema apresenta potencial para expansão contínua de funcionalidades.
+
+A manutenção evolutiva do Clima+ prevê a ampliação de suas capacidades conforme novas demandas e oportunidades forem identificadas. 
+Essa manutenção não se limita a correções ou melhorias internas, mas se concentra na adição de novas funcionalidades que aumentem o valor percebido pelos usuários.
+
+Algumas possibilidades previstas de evolução incluem:
+
+1. Integração com APIs mais completas de clima e qualidade do ar, para oferecer recomendações ainda mais precisas.
+2. Expansão da base de locais recomendados, com categorização por tipo de atividade (caminhada, ciclismo, yoga, etc.).
+3. Sistema de notificações personalizadas, alertando os usuários sobre horários ideais com base em seus hábitos e preferências.
+4. Inclusão de recursos de acessibilidade, como leitura por voz e contraste ampliado.
+5. Implementação de gamificação para incentivar o uso contínuo do sistema e a prática de atividades físicas.
+6. Suporte para salvar locais favoritos e rotas personalizadas.
+7. Adição de um painel administrativo para curadoria dos locais e moderação de comentários.
+8. Possibilidade de avaliar a lotação dos locais com base em dados colaborativos dos usuários.
+
+A manutenção evolutiva garante que o sistema continue relevante, útil e adaptado às novas necessidades dos usuários e da sociedade, 
+mantendo seu compromisso com a sustentabilidade, a inovação e a melhoria contínua da experiência urbana.
+
