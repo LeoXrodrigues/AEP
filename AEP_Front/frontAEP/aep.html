@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Clima Agradável</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(to right, #e0f7fa, #ffffff);
+      color: #333;
+      transition: background-color 0.5s, color 0.5s;
+    }
+
+    header {
+      background: linear-gradient(90deg, #0077be, #00c6ff);
+      padding: 15px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: background-color 0.5s, color 0.5s;
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.5em;
+      background: white;
+      color: #0077be;
+      padding: 5px 10px;
+      border-radius: 8px;
+      transition: background-color 0.5s, color 0.5s;
+    }
+
+    .search-container {
+      flex: 1;
+      margin: 0 30px;
+      display: flex;
+      align-items: center;
+    }
+
+    #cidade {
+      flex: 1;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+      transition: background-color 0.5s, color 0.5s;
+    }
+
+    #btnBuscar {
+      margin-left: 10px;
+      padding: 10px 16px;
+      border: none;
+      background-color: #004d73;
+      color: white;
+      font-size: 1em;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background-color 0.3s ease;
+    }
+
+    #btnBuscar:hover {
+      background-color: #006e9c;
+    }
+
+    .icon-buttons {
+      display: flex;
+      gap: 12px;
+      font-size: 1.5em;
+      user-select: none;
+    }
+
+    .icon-buttons span {
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .icon-buttons span:hover {
+      transform: scale(1.2);
+    }
+
+    main {
+      display: flex;
+      flex-direction: row;
+      padding: 30px;
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+      transition: background-color 0.5s;
+    }
+
+    #map {
+      flex: 3;
+      height: 450px;
+      border-radius: 12px;
+      border: 2px solid #ccc;
+      transition: border-color 0.5s;
+    }
+
+    .btn-info-regiao-container {
+  text-align: center;
+}
+
+  .btn-info-regiao-container button {
+    background-color: #0077be;
+    color: white;
+    font-weight: bold;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+  }
+
+.btn-info-regiao-container button:hover {
+  background-color: #005f94;
+}
+
+
+    .info-cards {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      border-radius: 12px;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.5s, color 0.5s, box-shadow 0.5s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card h3 {
+      font-size: 1.1em;
+      margin-bottom: 8px;
+      color: #0077be;
+      transition: color 0.5s;
+    }
+
+    .card p {
+      font-size: 1.4em;
+      font-weight: bold;
+      transition: color 0.5s;
+    }
+
+    #localizacao {
+      max-width: 1200px;
+      margin: 20px auto 40px auto;
+      padding: 12px 20px;
+      background: #f5f8fa;
+      color: #444;
+      font-size: 1.1em;
+      font-weight: 500;
+      border-radius: 8px;
+      border: 1px solid #d1d9e6;
+      text-align: center;
+      box-shadow: none;
+      user-select: none;
+      letter-spacing: 0.02em;
+      transition: background-color 0.5s, color 0.5s, border-color 0.5s;
+    }
+
+    body.dark-theme {
+      background: linear-gradient(to right, #0a0a0a, #222222);
+      color: #ddd;
+    }
+
+    body.dark-theme header {
+      background: linear-gradient(90deg, #001a33, #004080);
+      color: #eee;
+    }
+
+    body.dark-theme .logo {
+      background: #004080;
+      color: #aad4ff;
+    }
+
+    body.dark-theme #cidade {
+      background-color: #003366;
+      color: #aad4ff;
+      border-color: #0055aa;
+    }
+
+    body.dark-theme #btnBuscar {
+      background-color: #00264d;
+      color: #aad4ff;
+    }
+
+    body.dark-theme #btnBuscar:hover {
+      background-color: #004080;
+    }
+
+    body.dark-theme #map {
+      border-color: #0055aa;
+    }
+
+    body.dark-theme .card {
+      background: #1a1a1a;
+      box-shadow: 0 4px 12px rgba(170, 212, 255, 0.2);
+      color: #ccc;
+    }
+
+    body.dark-theme .card h3 {
+      color: #aad4ff;
+    }
+
+    body.dark-theme .card p {
+      color: #eee;
+    }
+
+    body.dark-theme #localizacao {
+      background: #004080;
+      color: #aad4ff;
+      border-color: #003366;
+      box-shadow: 0 4px 12px rgba(0, 64, 128, 0.6);
+    }
+
+    @media (max-width: 768px) {
+      main {
+        flex-direction: column;
+        padding: 15px;
+      }
+
+      #map {
+        height: 300px;
+      }
+    }
+
+    /* === Modal Login === */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 10% auto;
+      padding: 20px 30px;
+      border-radius: 10px;
+      width: 320px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      position: relative;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    .close-btn {
+      position: absolute;
+      right: 15px; top: 10px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* ... seu CSS atual ... */
+
+    #btnBuscar {
+      margin-left: 10px;
+      padding: 10px 16px;
+      border: none;
+      background-color: #004d73;
+      color: white;
+      font-size: 1em;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background-color 0.3s ease;
+    }
+
+    #btnBuscar:hover {
+      background-color: #006e9c;
+    }
+   
+   .btn-locais-container button:hover {
+     background-color: #0056b3;
+   }
+   
+   /* Centralizar botão */
+   .btn-locais-container {
+     text-align: center;
+     margin-top: 20px;
+   }
+
+
+/* ... resto do seu CSS ... */
+
+
+    .close-btn:hover {
+      color: #0077be;
+    }
+
+    .modal-content h2 {
+      margin-bottom: 20px;
+      color: #0077be;
+    }
+
+    .modal-content label {
+      display: block;
+      margin: 12px 0 6px 0;
+      font-weight: 500;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+
+    .modal-content button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px 0;
+      background-color: #0077be;
+      color: white;
+      font-weight: 700;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .modal-content button:hover {
+      background-color: #005f94;
+    }
+
+    .cadastro-link {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 0.9em;
+    }
+
+    .cadastro-link a {
+      color: #0077be;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+
+    .cadastro-link a:hover {
+      color: #005f94;
+      text-decoration: underline;
+    }
+    
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Clima+</div>
+    <div class="search-container">
+      <input type="text" id="cidade" placeholder="Digite a cidade..." />
+      <button id="btnBuscar" title="Buscar">🔍</button>
+    </div>
+    <div class="icon-buttons">
+      <span id="btnSol" title="Tema Claro">☀️</span>
+      <span id="btnLua" title="Tema Escuro">🌙</span>
+      <span id="btnPessoa" title="Login">👤</span>
+    </div>
+  </header>
+
+  <main>
+    <div id="map"></div>
+
+    <div class="info-cards">
+      <div class="card">
+        <h3>🌡️ Temperatura</h3>
+        <p id="tempInfo">--°C</p>
+      </div>
+      <div class="card">
+        <h3>☁️ Condição</h3>
+        <p id="condicaoInfo">--</p>
+      </div>
+      <div class="card">
+        <h3>🌞 Índice UV</h3>
+        <p id="uvInfo">--</p>
+      </div> 
+        <div class="btn-info-regiao-container">
+          <button onclick="window.location.href='http://127.0.0.1:5500/aep2.html'">
+          ℹ️ Locais recomendados
+      </button>
+</div>
+
+    </div>
+
+  </main>
+
+  <div id="localizacao">Endereço será exibido aqui</div>
+
+  <!-- Modal de Login -->
+  <div id="modalLogin" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="fecharModal">&times;</span>
+      <h2>Login</h2>
+      <form id="formLogin">
+        <label for="usuario">Usuário:</label>
+        <input type="text" id="usuario" name="usuario" required />
+
+        <label for="senha">Senha:</label>
+        <input type="password" id="senha" name="senha" required />
+
+        <button type="submit">Entrar</button>
+
+        <div class="cadastro-link">
+          Ainda não tem conta? <a href="cadastro.html">Cadastre-se aqui</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Locais Recomendados -->
+  <div id="modalLocais" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="fecharModalLocais">&times;</span>
+      <h2>Locais Recomendados em Maringá - PR</h2>
+      <ul id="listaLocais">
+        <!-- Locais serão inseridos aqui pelo JS -->
+      </ul>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+  <script>
+    const map = L.map('map').setView([-15.7942, -47.8822], 4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    let marker;
+
+    document.getElementById('btnBuscar').addEventListener('click', () => {
+      const cidade = document.getElementById('cidade').value.trim();
+      if (cidade) {
+        buscarClimaPorCidade(cidade);
+      }
+    });
+
+    document.getElementById('cidade').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('btnBuscar').click();
+      }
+    });
+
+    function buscarClimaPorCidade(cidade) {
+      fetch('http://localhost:8080/weather?city=' + encodeURIComponent(cidade))
+        .then(res => {
+          if (!res.ok) throw new Error('Cidade não encontrada');
+          return res.json();
+        })
+        .then(data => {
+          atualizarInfo(data);
+        })
+        .catch(err => {
+          alert('Erro: ' + err.message);
+        });
+    }
+
+    function buscarClimaPorCoordenadas(lat, lon) {
+      fetch(`http://localhost:8080/weather?lat=${lat}&lon=${lon}`)
+        .then(res => {
+          if (!res.ok) throw new Error('Localização não encontrada');
+          return res.json();
+        })
+        .then(data => {
+          atualizarInfo(data);
+        })
+        .catch(err => {
+          alert('Erro: ' + err.message);
+        });
+    }
+
+    function atualizarInfo(data) {
+      const lat = data.latitude || data.lat;
+      const lon = data.longitude || data.lon;
+      const temp = data.temperatura || data.temp;
+      const cond = data.descricao || data.weatherDescription || 'Indefinido';
+
+      // Simplificação da condição climática
+      const condLower = cond.toLowerCase();
+      let condSimplificada = 'Ensolarado';
+      if (condLower.includes('chuva') || condLower.includes('rain')) {
+        condSimplificada = 'Chuvoso';
+      } else if (condLower.includes('nublado') || condLower.includes('cloud')) {
+        condSimplificada = 'Nublado';
+      }
+
+      // Índice UV simulado de 0 a 11+
+      const uvSimulado = (Math.random() * 11).toFixed(1);
+
+      document.getElementById('tempInfo').textContent = `${temp?.toFixed(1) || '--'}°C`;
+      document.getElementById('condicaoInfo').textContent = condSimplificada;
+      document.getElementById('uvInfo').textContent = uvSimulado;
+
+      map.setView([lat, lon], 12);
+
+      if (marker) {
+        marker.setLatLng([lat, lon]);
+      } else {
+        marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+        marker.on('dragend', () => {
+          const pos = marker.getLatLng();
+          buscarClimaPorCoordenadas(pos.lat, pos.lng);
+          buscarEndereco(pos.lat, pos.lng);
+        });
+      }
+
+      marker.bindPopup(`${condSimplificada}, ${temp.toFixed(1)}°C`).openPopup();
+      buscarEndereco(lat, lon);
+    }
+
+    function buscarEndereco(lat, lon) {
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+        .then(res => res.json())
+        .then(data => {
+          const rua = data.address.road || 'Rua desconhecida';
+          const bairro = data.address.suburb || data.address.neighbourhood || 'Bairro desconhecido';
+          document.getElementById('localizacao').textContent = `${rua}, ${bairro}`;
+        })
+        .catch(() => {
+          document.getElementById('localizacao').textContent = 'Não foi possível encontrar o endereço.';
+        });
+    }
+
+    // Controle tema claro/escuro
+    const btnSol = document.getElementById('btnSol');
+    const btnLua = document.getElementById('btnLua');
+
+    btnSol.addEventListener('click', () => {
+      document.body.classList.remove('dark-theme');
+    });
+
+    btnLua.addEventListener('click', () => {
+      document.body.classList.add('dark-theme');
+    });
+
+    // Modal login
+    const modalLogin = document.getElementById('modalLogin');
+    const btnPessoa = document.getElementById('btnPessoa');
+    const fecharModal = document.getElementById('fecharModal');
+
+    btnPessoa.addEventListener('click', () => {
+      modalLogin.style.display = 'block';
+    });
+
+    fecharModal.addEventListener('click', () => {
+      modalLogin.style.display = 'none';
+    });
+
+    window.addEventListener('click', (e) => {
+      if (e.target === modalLogin) {
+        modalLogin.style.display = 'none';
+      }
+    });
+
+    document.getElementById('formLogin').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const usuario = e.target.usuario.value.trim();
+      const senha = e.target.senha.value.trim();
+      alert(`Usuário: ${usuario}\nSenha: ${senha}\nAqui você pode implementar o login real.`);
+      modalLogin.style.display = 'none';
+      e.target.reset();
+    });
+
+    // Locais recomendados - dados fixos para Maringá-PR
+    const locaisRecomendados = [
+      "Parque do Ingá",
+      "Catedral de Maringá",
+      "Parque Alfredo Nyffeler",
+      "Parque das Grevíleas",
+      "Mercadão de Maringá",
+      "Lago Igapó",
+      "Bosque dos Pioneiros"
+    ];
+
+    const modalLocais = document.getElementById('modalLocais');
+    const btnLocais = document.getElementById('btnLocais');
+    const fecharModalLocais = document.getElementById('fecharModalLocais');
+    const listaLocais = document.getElementById('listaLocais');
+
+    btnLocais.addEventListener('click', () => {
+      // Limpa lista antes de popular
+      listaLocais.innerHTML = '';
+      locaisRecomendados.forEach(local => {
+        const li = document.createElement('li');
+        li.textContent = local;
+        listaLocais.appendChild(li);
+      });
+      modalLocais.style.display = 'block';
+    });
+
+    fecharModalLocais.addEventListener('click', () => {
+      modalLocais.style.display = 'none';
+    });
+
+    window.addEventListener('click', (e) => {
+      if (e.target === modalLocais) {
+        modalLocais.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Clima+ - Locais Recomendados</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background-color: #e0f7fa;
+    color: #333;
+  }
+
+  header {
+    background: linear-gradient(90deg, #0077be, #00c6ff);
+    padding: 15px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo span {
+    font-weight: 700;
+    font-size: 1.5em;
+    background: white;
+    color: #0077be;
+    padding: 5px 10px;
+    border-radius: 8px;
+  }
+
+  .search-container {
+    flex: 1;
+    margin: 0 30px;
+    display: flex;
+  }
+
+  #cidade {
+    flex: 1;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+  }
+
+  #btnBuscar {
+    margin-left: 10px;
+    padding: 10px 16px;
+    border: none;
+    background-color: #004d73;
+    color: white;
+    font-size: 1em;
+    cursor: pointer;
+    border-radius: 6px;
+  }
+
+  .icon-buttons {
+    display: flex;
+    gap: 12px;
+    font-size: 1.5em;
+  }
+
+  .icon-buttons span {
+    cursor: pointer;
+  }
+
+  /* LAYOUT PRINCIPAL */
+  main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    padding: 30px;
+    max-width: 1200px;
+    margin: auto;
+    align-items: flex-start;
+  }
+
+  #map {
+    width: 100%;
+    height: 600px;
+    border-radius: 12px;
+    border: 2px solid #ccc;
+  }
+
+  .info-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* Barra de rolagem estilizada */
+.info-cards::-webkit-scrollbar {
+  width: 8px;
+}
+.info-cards::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+.info-cards::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  .card:hover {
+    transform: scale(1.02);
+  }
+
+  .card h3 {
+    font-size: 1.1em;
+    margin-bottom: 8px;
+    color: #0077be;
+  }
+
+  .card p {
+    font-size: 1em;
+  }
+
+  .card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+
+  #localizacao {
+    max-width: 1200px;
+    margin: 20px auto 0 auto;
+    padding: 12px 20px;
+    background: #f5f8fa;
+    color: #444;
+    font-size: 1.1em;
+    text-align: center;
+    border-radius: 8px;
+    border: 1px solid #d1d9e6;
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.comentarios-scroll {
+  max-height: 250px;
+  overflow-y: auto;
+  margin-top: 15px;
+  padding-right: 5px;
+}
+
+.comentarios-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.comentarios-scroll::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+
+  .modal-content h2 {
+    color: #0077be;
+    margin-bottom: 20px;
+  }
+
+  .modal-content p {
+    font-size: 1em;
+    margin-bottom: 10px;
+  }
+
+  .close-btn {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: white;
+  }
+
+  /* RESPONSIVO */
+  @media (max-width: 900px) {
+    main {
+      grid-template-columns: 1fr;
+      padding: 20px;
+    }
+
+    #map {
+      height: 400px;
+    }
+
+    .card img {
+      height: 160px;
+    }
+}
+
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <span>Clima+</span>
+    </div>
+    <div class="search-container">
+      <input type="text" id="cidade" placeholder="Digite a cidade..." />
+      <button id="btnBuscar">🔍</button>
+    </div>
+    <div class="icon-buttons">
+      <span title="Tema Claro">☀️</span>
+      <span title="Tema Escuro">🌙</span>
+      <span title="Login">👤</span>
+    </div>
+  </header>
+
+  <main>
+    <div id="map"></div>
+
+    <div class="info-cards">
+      <div class="card" onclick="abrirModal('Parque do Ingá')">
+        <img src="https://i0.wp.com/www.maringamais.com.br/wp-content/uploads/2024/06/parque.jpg?resize=640%2C400&ssl=1" alt="Parque do Ingá" style="width: 100%; height: auto; border-radius: 8px; margin-bottom: 10px;">
+        <h3>📍 Parque do Ingá</h3>
+        <p>Localizado no coração de Maringá, o Parque do Ingá é um santuário natural que combina tranquilidade, lazer e beleza. Com mais de 47 hectares de área verde preservada da Mata Atlântica, o parque oferece trilhas ecológicas, um lago central com pedalinhos, fontes naturais e uma fauna rica — incluindo capivaras, aves e peixes. É perfeito para quem busca um passeio tranquilo, prática de atividades físicas ao ar livre ou momentos de contemplação em meio à natureza..</p>
+        <p>
+        <strong>Endereço:</strong> Av. São Paulo, Zona 01<br>
+        <a href="https://www.google.com/maps?q=Parque+do+Ingá+Maringá" target="_blank">📍 Como chegar</a>
+        </p>
+      </div>
+
+      <div class="card" onclick="abrirModal('Vila Olímpica')">
+        <img src="https://azmagazine.com.br/wp-content/uploads/2022/05/gd_2c21d5e10614.jpeg" alt="Vila Olímpica de Maringá" style="width: 100%; height: auto; border-radius: 8px; margin-bottom: 10px;">
+        <h3>🏃 Vila Olímpica de Maringá</h3>
+        <p>Um dos maiores complexos esportivos do sul do Brasil, a Vila Olímpica reúne estrutura moderna para diversas modalidades. Conta com pista de atletismo profissional, quadras poliesportivas, ginásio coberto, piscinas olímpicas e uma grande área verde com aparelhos de ginástica. É o ponto de encontro de atletas, estudantes e moradores que buscam bem-estar, treinos funcionais, esportes coletivos ou apenas uma caminhada no fim da tarde.</p>
+        <p>
+        <strong>Endereço:</strong> Av. Herval, Zona 07<br>
+        <a href="https://www.google.com/maps?q=Vila+Olímpica+Maringá" target="_blank">📍 Como chegar</a>
+        </p>
+      </div>
+
+      <div class="card" onclick="abrirModal('Parque Alfredo Nyffeler')">
+        <img src="https://www3.maringa.pr.gov.br/sistema/imagens/gd_2507131374781654.jpg" alt="Parque Alfredo Nyffeler" style="width: 100%; height: auto; border-radius: 8px; margin-bottom: 10px;">
+        <h3>🚲 Parque Alfredo Nyffeler</h3>
+        <p>Conhecido carinhosamente como “Buracão” pelos moradores, o Parque Alfredo Nyffeler é um refúgio urbano cercado de árvores frondosas, trilhas leves e um belo lago com pedalinhos. O local é ideal para caminhadas, ciclismo, piqueniques ou momentos de lazer com as crianças, que podem se divertir no playground. Com bancos à sombra, áreas abertas e ambiente tranquilo, é uma ótima opção para relaxar sem sair da cidade.</p>
+        <p>
+        <strong>Endereço:</strong> R. Bogotá, Zona 07<br>
+        <a href="https://www.google.com/maps?q=Parque+Alfredo+Nyffeler+Maringá" target="_blank">📍 Como chegar</a>
+      </p>
+      </div>
+
+  </main>
+
+  <div id="localizacao">Avenida Tiradentes, Zona 50</div>
+
+  <div id="modalAvaliacao" class="modal" onclick="fecharModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <span class="close-btn" onclick="fecharModal()">&times;</span>
+      <h2 id="modalTitulo"></h2>
+      <div id="modalTexto" style="margin-top: 10px;"></div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([-23.425339, -51.939042], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const marker = L.marker([-23.425339, -51.939042], { draggable: true }).addTo(map)
+      .bindPopup('Maringá - PR')
+      .openPopup();
+
+    function atualizarEndereco(lat, lon) {
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+        .then(res => res.json())
+        .then(data => {
+          const rua = data.address.road || 'Rua desconhecida';
+          const bairro = data.address.suburb || data.address.neighbourhood || 'Bairro desconhecido';
+          document.getElementById('localizacao').textContent = `${rua}, ${bairro}`;
+        })
+        .catch(() => {
+          document.getElementById('localizacao').textContent = 'Endereço não encontrado';
+        });
+    }
+
+    marker.on('dragend', () => {
+      const pos = marker.getLatLng();
+      map.setView(pos, 14);
+      atualizarEndereco(pos.lat, pos.lng);
+    });
+
+    atualizarEndereco(-23.425327, -51.938493);
+
+    const avaliacoes = {
+      "Parque do Ingá": [
+        { nome: "Ana Paula", estrelas: 5, comentario: "Ambiente muito tranquilo, ótimo para caminhar com meus filhos." },
+        { nome: "Carlos Mendes", estrelas: 4, comentario: "Limpo, seguro e rodeado de natureza. Recomendo!" },
+        { nome: "Luiza Ferreira", estrelas: 5, comentario: "Melhor parque da cidade. Dá pra relaxar e fugir do estresse." },
+        { nome: "Eduardo Rocha", estrelas: 4, comentario: "Achei excelente para corrida no fim da tarde." }
+      ],
+      "Vila Olímpica": [
+        { nome: "Marcos Silva", estrelas: 5, comentario: "Adoro treinar aqui! As pistas são boas e bem cuidadas." },
+        { nome: "Júlia Vasconcelos", estrelas: 4, comentario: "Muito espaço e várias atividades ao ar livre. Amei!" },
+        { nome: "Rafael Lima", estrelas: 3, comentario: "Lugar legal, mas podia ter mais sombra." },
+        { nome: "Beatriz Cunha", estrelas: 5, comentario: "Treino funcional aqui quase todo dia, ótimo lugar!" }
+      ],
+      "Parque Alfredo Nyffeler": [
+        { nome: "Fernanda Gomes", estrelas: 4, comentario: "Levo meus filhos pra andar de bike aqui, eles adoram." },
+        { nome: "Paulo Henrique", estrelas: 5, comentario: "A vista no fim do dia é linda. Muito agradável." },
+        { nome: "Simone Andrade", estrelas: 4, comentario: "Bom espaço pra caminhada e piquenique." },
+        { nome: "Diego Nunes", estrelas: 5, comentario: "Sempre bem cuidado e ótimo pra curtir com a família." }
+      ]
+    };
+
+  const dadosLocais = {
+    "Parque do Ingá": {
+    imagem: "https://i0.wp.com/www.maringamais.com.br/wp-content/uploads/2024/06/parque.jpg?resize=640%2C400&ssl=1",
+    descricao: "Localizado no coração de Maringá, o Parque do Ingá é um santuário natural que combina tranquilidade, lazer e beleza. Com mais de 47 hectares de área verde preservada da Mata Atlântica, o parque oferece trilhas ecológicas, um lago central com pedalinhos, fontes naturais e uma fauna rica — incluindo capivaras, aves e peixes. É perfeito para quem busca um passeio tranquilo, prática de atividades físicas ao ar livre ou momentos de contemplação em meio à natureza.",
+    endereco: "Av. São Paulo, Zona 01",
+    link: "https://www.google.com/maps?q=Parque+do+Ingá+Maringá"
+  },
+    "Vila Olímpica": {
+    imagem: "https://azmagazine.com.br/wp-content/uploads/2022/05/gd_2c21d5e10614.jpeg",
+    descricao: "Um dos maiores complexos esportivos do sul do Brasil, a Vila Olímpica reúne estrutura moderna para diversas modalidades. Conta com pista de atletismo profissional, quadras poliesportivas, ginásio coberto, piscinas olímpicas e uma grande área verde com aparelhos de ginástica. É o ponto de encontro de atletas, estudantes e moradores que buscam bem-estar, treinos funcionais, esportes coletivos ou apenas uma caminhada no fim da tarde.",
+    endereco: "Av. Herval, Zona 07",
+    link: "https://www.google.com/maps?q=Vila+Olímpica+Maringá"
+  },
+    "Parque Alfredo Nyffeler": {
+    imagem: "https://www3.maringa.pr.gov.br/sistema/imagens/gd_2507131374781654.jpg",
+    descricao: "Conhecido carinhosamente como “Buracão” pelos moradores, o Parque Alfredo Nyffeler é um refúgio urbano cercado de árvores frondosas, trilhas leves e um belo lago com pedalinhos. O local é ideal para caminhadas, ciclismo, piqueniques ou momentos de lazer com as crianças, que podem se divertir no playground. Com bancos à sombra, áreas abertas e ambiente tranquilo, é uma ótima opção para relaxar sem sair da cidade.",
+    endereco: "R. Bogotá, Zona 07",
+    link: "https://www.google.com/maps?q=Parque+Alfredo+Nyffeler+Maringá"
+  }
+};
+
+
+    function gerarEstrelas(qtd) {
+      return "★".repeat(qtd) + "☆".repeat(5 - qtd);
+    }
+
+  function abrirModal(nome) {
+  const local = dadosLocais[nome];
+  const comentarios = avaliacoes[nome] || [];
+
+  let html = `
+    <img src="${local.imagem}" alt="${nome}">
+    <h2>${nome}</h2>
+    <p>${local.descricao}</p>
+    <p><strong>Endereço:</strong> ${local.endereco} <br>
+    <a href="${local.link}" target="_blank">📍 Como chegar</a></p>
+    <hr>
+    <div class="comentarios-scroll">
+  `;
+
+  comentarios.forEach(avaliacao => {
+    html += `
+      <div style="margin-bottom: 15px; text-align: left;">
+        <strong>${avaliacao.nome}</strong><br>
+        <span style="color: gold;">${gerarEstrelas(avaliacao.estrelas)}</span><br>
+        <span>${avaliacao.comentario}</span>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  document.getElementById('modalTexto').innerHTML = html;
+  document.getElementById('modalAvaliacao').style.display = 'flex';
+}
+
+
+    function fecharModal() {
+      document.getElementById('modalAvaliacao').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
